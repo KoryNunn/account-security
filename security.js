@@ -1,36 +1,85 @@
 var bcrypt = require("bcrypt-nodejs");
 
-function Security(getAccount){
+function Security(getAccount, createAccount, saveAccount, errorMessages){
     this.getAccount = getAccount;
+    this.createAccount = createAccount;
+    this.saveAccount = saveAccount;
+    this.errorMessages = errorMessages || {
+        accountNamePassRequired: 'Both an account name and a password are required.',
+        accountNameOldPassNewPass: 'An account name, old password, and new password are required.',
+        accountExists: 'An account with this name already exists.',
+        noAccount: 'No account with this name is registered.',
+        incorrectPassword: 'The password provided was incorrect.'
+    };
 }
 
-Security.prototype.register = function register(email, password, callback){
-    this.getAccount({email: email}, function(error, account){
+Security.prototype.register = function register(accountDetails, callback){
+    var security = this;
+
+    if(accountDetails.accountName == null || accountDetails.password == null){
+        callback(new Error(security.errorMessages.accountNamePassRequired));
+        return;
+    }
+
+    this.getAccount(accountDetails.accountName, function(error, account){
         if(error){
             callback(error);
             return;
         }
         if(account){
-            callback(new Error('An account with this email address already exists'));
+            callback(new Error(security.errorMessages.accountExists));
             return;
         }
 
-        var hash = bcrypt.hashSync(password);
+        accountDetails.password = bcrypt.hashSync(accountDetails.password);
 
-        callback(null, hash);
+        security.createAccount(accountDetails, function(error, account){
+            if(error){
+                callback(error);
+                return;
+            }
+            security.saveAccount(account, callback);
+        });
     });
 };
-Security.prototype.authenticate = function signIn(email, password, callback){
-    email = email.toLowerCase();
+Security.prototype.changePassword = function register(accountName, oldPassword, newPassword, callback){
+    var security = this;
 
-    this.getAccount({email: email, hash: bcrypt.compareSync(password)}, function(error, account){
+    if(accountName == null || oldPassword == null || newPassword == null){
+        callback(new Error(security.errorMessages.accountNameOldPassNewPass));
+        return;
+    }
+
+    this.authenticate(accountName, oldPassword, function(error, account){
+        if(error){
+            callback(error);
+            return;
+        }
+
+        account.password = bcrypt.hashSync(newPassword);
+
+        security.saveAccount(account, callback);
+    });
+};
+Security.prototype.authenticate = function signIn(accountName, password, callback){
+    var security = this;
+
+    if(accountName == null || password == null){
+        callback(new Error(security.errorMessages.accountNamePassRequired));
+        return;
+    }
+
+    this.getAccount(accountName, function(error, account){
         if(error){
             callback(error);
             return;
         }
         if(!account){
-            callback(new Error('No account with this email address is registered.'));
+            callback(new Error(security.errorMessages.noAccount));
             return;
+        }
+        if(!bcrypt.compareSync(password, account.password)){
+            callback(new Error(security.errorMessages.incorrectPassword));
         }
 
         callback(null, account);
