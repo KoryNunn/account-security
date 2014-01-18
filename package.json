@@ -1,6 +1,6 @@
 {
   "name": "account-security",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "A basic generic create/authenticate wrapper for logins.",
   "main": "security.js",
   "scripts": {
