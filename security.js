@@ -13,15 +13,15 @@ function Security(getAccount, createAccount, saveAccount, errorMessages){
     };
 }
 
-Security.prototype.register = function register(accountDetails, callback){
+Security.prototype.register = function register(accountName, password, accountDetails, callback){
     var security = this;
 
-    if(accountDetails.accountName == null || accountDetails.password == null){
+    if(accountName == null || password == null){
         callback(new Error(security.errorMessages.accountNamePassRequired));
         return;
     }
 
-    this.getAccount(accountDetails.accountName, function(error, account){
+    this.getAccount(accountName, function(error, account){
         if(error){
             callback(error);
             return;
@@ -31,9 +31,9 @@ Security.prototype.register = function register(accountDetails, callback){
             return;
         }
 
-        accountDetails.password = bcrypt.hashSync(accountDetails.password);
+        var hash = bcrypt.hashSync(password);
 
-        security.createAccount(accountDetails, function(error, account){
+        security.createAccount(accountName, hash, accountDetails, function(error, account){
             if(error){
                 callback(error);
                 return;
