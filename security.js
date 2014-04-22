@@ -80,6 +80,7 @@ Security.prototype.authenticate = function signIn(accountName, password, callbac
         }
         if(!bcrypt.compareSync(password, account.password)){
             callback(new Error(security.errorMessages.incorrectPassword));
+            return;
         }
 
         callback(null, account);
