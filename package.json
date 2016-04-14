@@ -10,5 +10,14 @@
   "license": "BSD",
   "dependencies": {
     "bcrypt-nodejs": "0.0.x"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KoryNunn/account-security.git"
+  },
+  "keywords": [],
+  "bugs": {
+    "url": "https://github.com/KoryNunn/account-security/issues"
+  },
+  "homepage": "https://github.com/KoryNunn/account-security#readme"
 }
